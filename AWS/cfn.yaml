@@ -1,0 +1,231 @@
+---
+Description: Corelight Sensor
+
+Parameters:
+  DeploymentName:
+    Description: The name of the corelight deployment
+    Type: String
+    Default: Corelight Sensor
+
+  AutoScalingAvailabilityZones:
+    Type: CommaDelimitedList
+    Description: Comma delimited list of availability zones
+
+  ImageId:
+    Description: Corelight Sensor AMI Id
+    Type: AWS::EC2::Image::Id
+
+  InstanceType:
+    Description: Enter instance size.
+    Type: String
+    Default: c5.2xlarge
+
+  VpcCIDR:
+    Description: IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 172.21.0.0/16
+
+  VpcId:
+    Description: Id of the VPC
+    Type: String
+
+  MonitoringSubnetId:
+    Description: Id of the monitoring subnet
+    Type: String
+
+  MonitoringSubnetCIDR:
+    Description: IP range (CIDR notation) for the monitoring subnet
+    Type: String
+
+  ManagementSubnetId:
+    Description: Id of the management subnet
+    Type: String
+
+  ManagementSubnetCIDR:
+    Description: IP range (CIDR notation) for the management subnet
+    Type: String
+
+  KeyPairName:
+    Description: The SSH public key used to access the instance
+    Type: String
+
+  # VPCEndpointServiceAllowedPrincipals:
+  #   Type: CommaDelimitedList
+  #   Description: Comma delimited list of principals to automatically accept connection requests from
+
+Resources:
+  MonitorSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Monitor sec group for deployment ${DeploymentName}
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # GENEVE
+        - CidrIp: !Ref VpcCIDR
+          IpProtocol: udp
+          FromPort: 6081
+          ToPort: 6081
+        - CidrIp: !Ref VpcCIDR
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+      Tags:
+        - Key: corelight:sgType
+          Value: sg-monitoring
+
+  ManagementSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Management sec group for deployment ${DeploymentName}
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: !Ref ManagementSubnetCIDR
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+      Tags:
+        - Key: corelight:sgType
+          Value: sg-management
+
+  MonitoringInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: !Ref MonitoringSubnetId
+      GroupSet:
+        - !Ref MonitorSecGroup
+
+  ManagementInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: !Ref ManagementSubnetId
+      GroupSet:
+        - !Ref ManagementSecGroup
+
+  SensorLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: SensorLaunchTemplate
+      # LaunchTemplateName: !Sub ${DeploymentName}-SensorLaunchTemplate
+      LaunchTemplateData:
+        EbsOptimized: false
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            NetworkInterfaceId: !Ref MonitoringInterface
+          - DeviceIndex: 1
+            NetworkInterfaceId: !Ref ManagementInterface
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPairName
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: corelight:deploymentName
+                Value: !Ref DeploymentName
+        UserData:
+          "Fn::Base64": |
+            # cloud-config
+            write_files:
+              - path: /etc/corelight/corelightctl.yaml
+                content: |
+                  sensor:
+                    api:
+                      password: 'test123'
+                    license_key: 'badLicense'
+
+  GwLBTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${DeploymentName}-GwLBTG
+      Protocol: GENEVE
+      Port: 6081
+      VpcId: !Ref VpcId
+      HealthCheckProtocol: HTTPS
+      HealthCheckPath: /api/system/healthcheck/
+      HealthCheckPort: '443'
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      TargetType: instance
+
+  GwLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${DeploymentName}-GwLB
+      Type: gateway
+      Subnets: [!Ref MonitoringSubnetId]
+
+  GwLBL:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref GwLB
+      Port: 6081
+      Protocol: UDP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref GwLBTG
+
+  # VPCEndpointService:
+  #   Type: AWS::EC2::VPCEndpointService
+  #   Properties:
+  #     AcceptanceRequired: False
+  #     GatewayLoadBalancerArns:
+  #       - !Ref GwLB
+
+  # VPCEndpointServicePermissions:
+  #   Type: AWS::EC2::VPCEndpointServicePermissions
+  #   Properties:
+  #     AllowedPrincipals: !Ref VPCEndpointServiceAllowedPrincipals
+  #     ServiceId: !Ref VPCEndpointService
+
+  SensorAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: SensorAutoScalingGroup
+      LaunchTemplate:
+        LaunchTemplateName: SensorLaunchTemplate
+        Version: !GetAtt SensorLaunchTemplate.LatestVersionNumber
+      MinSize: "1"
+      MaxSize: "5"
+      DesiredCapacity: "1"
+      AvailabilityZones: !Ref AutoScalingAvailabilityZones
+      LoadBalancerNames: []
+      TargetGroupARNs: [!Ref GwLBTG]
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Tags:
+        - ResourceId: SensorAutoScalingGroup
+          ResourceType: auto-scaling-group
+          Key: Name
+          Value: SensorAutoScalingGroup
+          PropagateAtLaunch: true
+      TerminationPolicies:
+        - OldestInstance
+      NewInstancesProtectedFromScaleIn: false
+
+  # ASGScalingPolicyCPU:
+  #   Type: AWS::AutoScaling::ScalingPolicy
+  #   Properties:
+  #     AutoScalingGroupName: SensorAutoScalingGroup
+  #     PolicyType: StepScaling
+  #     AdjustmentType: ChangeInCapacity
+  #     StepAdjustments:
+  #       - MetricIntervalLowerBound: 0
+  #         ScalingAdjustment: 1
+
+  # CPUAlarmHigh:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     Statistic: Average
+  #     Threshold: '70'
+  #     AlarmDescription: 'Scale out if CPU > 70% for 2 minutes'
+  #     EvaluationPeriods: '2'
+  #     Period: '60'
+  #     AlarmActions:
+  #       - !Ref ASGScalingPolicyCPU
+  #     Namespace: AWS/EC2
+  #     Dimensions:
+  #       - Name: AutoScalingGroupName
+  #         Value: SensorAutoScalingGroup
+  #     ComparisonOperator: GreaterThanThreshold
+  #     MetricName: CPUUtilization
