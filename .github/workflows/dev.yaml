@@ -10,6 +10,6 @@ jobs:
   deploy-cfts:
     uses: ./.github/workflows/deploy-cfts-to-s3.yaml
     with:
-      S3_BUCKET: ${{ env.S3_BUCKET }}
-      AWS_RULE: ${{ env.AWS_ROLE }}
-      AWS_REGION: ${{ env.AWS_REGION }}
+      S3_BUCKET: ${{ S3_BUCKET }}
+      AWS_RULE: ${{ AWS_ROLE }}
+      AWS_REGION: ${{ AWS_REGION }}
