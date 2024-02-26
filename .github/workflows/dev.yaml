@@ -7,7 +7,7 @@ env:
   AWS_REGION: us-east-2
 jobs:
   deploy-cfts:
-    uses: ./.github/workflows/deploy-cfts-to-s3.yml
+    uses: ./.github/workflows/deploy-cfts-to-s3.yaml
     with:
       S3_BUCKET: ${{ env.S3_BUCKET }}
       AWS_RULE: ${{ env.AWS_ROLE }}
