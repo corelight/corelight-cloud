@@ -2,14 +2,10 @@ on:
   push:
     branches-ignore:
       - main
-env:
-  S3_BUCKET: dev-corelight-cloud-public-templates
-  AWS_ROLE: arn:aws:iam::046444305225:role/github-oidc-provider-aws
-  AWS_REGION: us-east-2
 jobs:
   deploy-cfts:
     uses: ./.github/workflows/deploy-cfts-to-s3.yaml
     with:
-      S3_BUCKET: ${{ S3_BUCKET }}
-      AWS_RULE: ${{ AWS_ROLE }}
-      AWS_REGION: ${{ AWS_REGION }}
+      S3_BUCKET: dev-corelight-cloud-public-templates
+      AWS_RULE: arn:aws:iam::046444305225:role/github-oidc-provider-aws
+      AWS_REGION: us-east-2
