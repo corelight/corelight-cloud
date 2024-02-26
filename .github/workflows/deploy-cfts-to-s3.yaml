@@ -20,9 +20,9 @@ jobs:
       - name: Assume Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ AWS_ROLE }}
+          aws-region: ${{ AWS_REGION }}
           role-duration-seconds: 1200
       - name: Push Files
         run: |          
-          aws s3 cp cloud-native-iac/AWS/*.yaml s3://${{ env.S3_BUCKET }}
+          aws s3 cp cloud-native-iac/AWS/*.yaml s3://${{ S3_BUCKET }}
