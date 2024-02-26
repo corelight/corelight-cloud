@@ -1,0 +1,26 @@
+on:
+  push:
+    branches-ignore:
+      - main
+jobs:
+  deploy-aws-cfts:
+    name: Deploy CFTs to Dev S3
+    runs-on: ubuntu-latest
+    env:
+      S3_BUCKET: dev-corelight-cloud-public-templates
+      AWS_ROLE: arn:aws:iam::046444305225:role/github-oidc-provider-aws
+      AWS_REGION: us-east-2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assume Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 1200
+      - name: Push Files
+        run: |
+          aws s3 cp cloud-native-iac/AWS/*.yaml s3://${{ env.S3_BUCKET }}
+permissions:
+  id-token: write
+  contents: read
