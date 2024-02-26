@@ -1,6 +1,7 @@
 on:
-  pull_request:
-    types: [opened, reopened]
+  push:
+    branches-ignore:
+      - main
 env:
   S3_BUCKET: dev-corelight-cloud-public-templates
   AWS_ROLE: arn:aws:iam::046444305225:role/github-oidc-provider-aws
