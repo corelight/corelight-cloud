@@ -1,0 +1,14 @@
+on:
+  pull_request:
+    types: [opened, reopened]
+env:
+  S3_BUCKET: dev-corelight-cloud-public-templates
+  AWS_ROLE: arn:aws:iam::046444305225:role/github-oidc-provider-aws
+  AWS_REGION: us-east-2
+jobs:
+  deploy-cfts:
+    uses: ./.github/workflows/deploy-cfts-to-s3.yml
+    with:
+      S3_BUCKET: ${{ env.S3_BUCKET }}
+      AWS_RULE: ${{ env.AWS_ROLE }}
+      AWS_REGION: ${{ env.AWS_REGION }}
