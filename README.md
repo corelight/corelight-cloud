@@ -30,11 +30,11 @@ Code to deploy Corelight's Cloud Sensor.
 
 ### AWS
 
-* [Terraform][terraform-aws-sensor]
 * [CFN][cfn-aws-sensor]
+* [Terraform][terraform-aws-sensor]
 
-[terraform-aws-sensor]: https://github.com/corelight/terraform-aws-sensor/
 [cfn-aws-sensor]: https://github.com/corelight/corelight-cloud/tree/main/cloud-native-iac/AWS
+[terraform-aws-sensor]: https://github.com/corelight/terraform-aws-sensor/
 
 ### Azure
 
