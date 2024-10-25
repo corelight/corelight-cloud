@@ -1,52 +1,27 @@
-# Corelight Cloud
+# Corelight Deployment Guide
 
-IaC used to deploy Corelight Sensors into various Cloud Providers.
+This repository provides sample configurations for deploying Corelight products
+across AWS, Azure, and Google Cloud Platform (GCP). The examples offer both
+**Terraform-based** and **cloud-native IaC solutions**, allowing users to
+choose based on their preferences and platform requirements.
 
-## Cloud Enrichment Service
+## Directory Structure
 
-Code to deploy Corelight's Cloud Enrichment services.
+### `terraform/`
 
-### AWS
+Contains **Terraform** modules for deploying Corelight products with consistent
+configurations across multiple clouds.
 
-* [Terraform][terraform-aws-enrichment]
+- **`aws/`**: Terraform modules for AWS deployments.
+- **`azure/`**: Terraform modules for Azure deployments.
+- **`gcp/`**: Terraform modules for GCP deployments.
 
-[terraform-aws-enrichment]: https://github.com/corelight/terraform-aws-enrichment/
+### `cloud-native-iac/`
 
-### Azure
+Includes cloud provider-native infrastructure-as-code (IaC) templates for deeper
+integration with specific cloud services.
 
-* [Terraform][terraform-azure-enrichment]
-
-[terraform-azure-enrichment]: https://github.com/corelight/terraform-azure-enrichment/
-
-### GCP
-
-* [Terraform][terraform-gcp-enrichment]
-
-[terraform-gcp-enrichment]: https://github.com/corelight/terraform-gcp-sensor/
-
-## Cloud Sensor
-
-Code to deploy Corelight's Cloud Sensor.
-
-### AWS
-
-* [CFN][cfn-aws-sensor]
-* [Terraform][terraform-aws-sensor]
-
-[cfn-aws-sensor]: https://github.com/corelight/corelight-cloud/tree/main/cloud-native-iac/AWS
-[terraform-aws-sensor]: https://github.com/corelight/terraform-aws-sensor/
-
-### Azure
-
-* [Terraform][terraform-azure-sensor]
-
-[terraform-azure-sensor]: https://github.com/corelight/terraform-azure-sensor/
-
-### GCP
-
-* [Terraform][terraform-gcp-sensor]
-
-[terraform-gcp-sensor]: https://github.com/corelight/terraform-gcp-enrichment/
+- **`aws/`**: CloudFormation templates for AWS deployments.
 
 ## License
 

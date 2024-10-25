@@ -1,21 +1,12 @@
-# AWS
+# Corelight Sensor Deployment - AWS
 
-AWS specific deployment scripts.
+This directory provides Cloud Formation code for deploying Corelight's Sensor
+on **AWS**.
 
-## Cloud Formation
-
-A Cloud Formation template for deploying Corelight Sensors.
-
-## Dependencies
-
-* Install [AWS Command Line Interface][awscli]
-
-### Deployment Instructions
+## Usage
 
 Execute the following commands making sure to provide the appropriate
 parameters for your environment.
-
-#### Sensor
 
 Create a new stack:
 
