@@ -1,43 +1,26 @@
 # Terraform
 
-This directory contains **Terraform** modules used to deploy Corelight products
+This directory contains **Terraform** modules used to deploy Corelight solutions
 across multiple cloud providers.
 
-## Corelight Sensor
+#### Subdirectories
 
-Terraform modules for deploying Corelight Sensors in the following cloud
-environments:
-
-- **AWS**
-
-  - [Terraform Module](./sensor/aws/README.md)
-
-- **Azure**
-
-  - [Terraform Module](./sensor/azure/README.md)
-
-- **GCP**
-
-  - [Terraform Module](./sensor/gcp/README.md)
-
-## Cloud Enrichment Service
-
-Modules for deploying Corelight's Cloud Enrichment services, enabling data
-enrichment across cloud ecosystems:
-
-- **AWS**
-
-  - [Terraform Module](./cloud-enrichment/aws/README.md)
-
-- **Azure**
-
-  - [Terraform Module](./cloud-enrichment/azure/README.md)
-
-- **GCP**
-
-  - [Terraform Module](./cloud-enrichment/gcp/README.md)
+- **`aws-autoscaling-sensor/`**: Contains Terraform files for deploying an
+    autoscaling sensor within AWS, including `main.tf` and `versions.tf` files for configuration.
+- **`aws-cloud-enrichment/`**: A Terraform module for setting up cloud enrichment
+    services on AWS.
+- **`azure-cloud-enrichment/`**: Module to configure cloud enrichment capabilities
+    on Azure.
+- **`azure-scaleset-sensor/`**: Azure Terraform configuration to deploy Corelight
+    sensors on a Virtual Machine Scale Set.
+- **`gcp-mig-sensor/`**: A Terraform module for deploying a sensor with GCP’s
+    Managed Instance Groups (MIG).
+- **`gcp-cloud-enrichment/`**: GCP-specific Terraform module for configuring cloud
+    enrichment services.
+- **`integrations/`**: Subdirectories for integrating Corelight products with
+    partner solutions.
 
 ## How to Use
 
-Navigate into the appropriate cloud provider's directory and follow the
-instructions provided in the `README.md` for each module.
+Navigate into the appropriate directory and follow the instructions provided in
+the `README.md` for each module.

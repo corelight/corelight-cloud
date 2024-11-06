@@ -20,7 +20,7 @@ jobs:
           role-duration-seconds: 1200
       - name: Push Files
         run: |
-          aws s3 cp cloud-native-iac/sensor/aws/*.yaml s3://${{ env.S3_BUCKET }}
+          aws s3 cp cloudformation/*.yaml s3://${{ env.S3_BUCKET }}
 permissions:
   id-token: write
   contents: read

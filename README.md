@@ -2,26 +2,28 @@
 
 This repository provides sample configurations for deploying Corelight products
 across AWS, Azure, and Google Cloud Platform (GCP). The examples offer both
-**Terraform-based** and **cloud-native IaC solutions**, allowing users to
-choose based on their preferences and platform requirements.
+**Terraform-based** and **native IaC solutions**, allowing users to choose
+the approach that best fits their platform requirements and preferences.
 
-## Directory Structure
+## Directory Structure Overview
+
+### `cloudformation/`
+
+This directory includes **AWS CloudFormation templates** for deploying Corelight
+solutions within AWS environments using native AWS IaC. Each template provides
+configurations tailored for Corelight.
 
 ### `terraform/`
 
-Contains **Terraform** modules for deploying Corelight products with consistent
-configurations across multiple clouds.
+The `terraform/` directory contains **Terraform modules** structured by cloud
+provider. Each subdirectory under `terraform/` is organized by provider and
+service, with individual `README.md` files for specific guidance on deploying
+Corelight products within that cloud.
 
-- **`aws/`**: Terraform modules for AWS deployments.
-- **`azure/`**: Terraform modules for Azure deployments.
-- **`gcp/`**: Terraform modules for GCP deployments.
+#### Integrations
 
-### `cloud-native-iac/`
-
-Includes cloud provider-native infrastructure-as-code (IaC) templates for deeper
-integration with specific cloud services.
-
-- **`aws/`**: CloudFormation templates for AWS deployments.
+Within `terraform/integrations/`, you’ll find subdirectories for integrating
+Corelight products with partner solutions.
 
 ## License
 
