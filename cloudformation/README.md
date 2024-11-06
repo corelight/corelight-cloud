@@ -1,21 +1,17 @@
-# AWS
+# Corelight CloudFormation Templates
 
-AWS specific deployment scripts.
+This directory contains AWS CloudFormation templates for deploying Corelight
+solutions within AWS environments.
 
-## Cloud Formation
+## Templates
 
-A Cloud Formation template for deploying Corelight Sensors.
+- **`autoscaling-sensor.yaml`**: Sets up an Auto Scaling group for Corelight Sensors,
+    enabling automatic scaling based on demand.
 
-## Dependencies
-
-* Install [AWS Command Line Interface][awscli]
-
-### Deployment Instructions
+## Usage
 
 Execute the following commands making sure to provide the appropriate
 parameters for your environment.
-
-#### Sensor
 
 Create a new stack:
 
@@ -52,5 +48,3 @@ aws cloudformation update-stack --region <AWS_REGION> \
     ParameterKey=KeyPairName,ParameterValue=<SENSOR_KEY_PAIR_NAME> \
   --template-body file://cfn.yaml
 ```
-
-[awscli]: https://aws.amazon.com/cli/
