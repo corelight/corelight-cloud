@@ -1,7 +1,7 @@
 # Corelight Cloud Enrichment Service Deployment - Azure
 
 This directory provides Terraform code for deploying Corelight's Cloud Enrichment
-on **GCP**.
+on **Azure**.
 
 ## Overview
 
