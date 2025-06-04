@@ -32,3 +32,30 @@ Once connected to Fleet, configure the AWS VPC Flow feature (Private Preview) un
 * While a Flow Sensor can read from a s3 bucket that includes VPC Flow logs for multiple accounts, it will only process
     logs for the account in which it is deployed.
 
+## IAM Policy JSON
+```json
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::<vpc-flow-bucket-name>/*",
+        "arn:aws:s3:::<vpc-flow-bucket-name>/*"
+      ]
+    },
+    {
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeFlowLogs"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+```
