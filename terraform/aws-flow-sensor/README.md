@@ -17,9 +17,9 @@ to simplify the deployment of the Flow sensor and includes example resources for
   * `Per Hour Partition` and `Hive Compatible Partitions` are disabled
 
 ## Configuration 
-Once connected to Fleet, configure the AWS VPC Flow feature (Private Preview) under `Advanced` is follows:
+Once connected to Fleet, configure the AWS VPC Flow feature (Private Preview) under `Advanced` as follows
 * Enable the feature by switching on `cloud_vpc_flow.enable`
-* All configurations below are begin with `cloud_vpc_flow.`
+* All configurations below begin with `cloud_vpc_flow.`
 
 | Configuration       | Required | Type   | Default Region                                                                                                                                                                                                                                                                               | Purpose                                                     | Example                 |
 |---------------------|----------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|-------------------------|
