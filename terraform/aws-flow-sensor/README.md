@@ -26,7 +26,7 @@ Once connected to Fleet, configure the AWS VPC Flow feature (Private Preview) un
 | `start_date`        | YES      | string | N/A                                                                                                                                                                                                                                                                                          | Date to begin processing<br/>flow logs in AWS format        | `2025/06/01`            |
 | `log_level`         | NO       | string | `info`                                                                                                                                                                                                                                                                                       | The log level of the service                                | `debug` to troubleshoot |
 | `monitored_vpcs`    | NO       | string | `null`                                                                                                                                                                                                                                                                                       |                                                             | `vpc-12345,vpc-54321`   |
-| `monitored_regions` | NO       | string | `us-east-1`<br/>`us-east-2`<br/>`us-west-1`<br/>`us-west-2`<br/>`ap-south-1`<br/>`ap-northeast-1`<br/>`ap-northeast-2`<br/>`ap-northeast-3`<br/>`ap-southeast-1`<br/>`ap-southeast-2`<br/>`ca-central-1`<br/>`eu-central-1`<br/>`eu-west-2`<br/>`eu-west-3`<br/>`eu-north-1`<br/>`sa-east-1` | Regions to enumerate<br/>for compatible <br/>configurations | `us-east-1,us-east2`    |
+| `monitored_regions` | NO       | string | `us-east-1`<br/>`us-east-2`<br/>`us-west-1`<br/>`us-west-2`<br/>`ap-south-1`<br/>`ap-northeast-1`<br/>`ap-northeast-2`<br/>`ap-northeast-3`<br/>`ap-southeast-1`<br/>`ap-southeast-2`<br/>`ca-central-1`<br/>`eu-central-1`<br/>`eu-west-2`<br/>`eu-west-3`<br/>`eu-north-1`<br/>`sa-east-1` | Regions to enumerate<br/>for compatible <br/>configurations | `us-east-1,us-east-2`   |
 | `s3_bucket_prefix`  | NO       | string | `AWSLogs`                                                                                                                                                                                                                                                                                    | VPC flow log s3 object prefix                               | `AWSLogs`               |
 
 ## Limitations
@@ -44,7 +44,7 @@ Once connected to Fleet, configure the AWS VPC Flow feature (Private Preview) un
       ],
       "Effect": "Allow",
       "Resource": [
-        "arn:aws:s3:::<vpc-flow-bucket-name>/*",
+        "arn:aws:s3:::<vpc-flow-bucket-name>",
         "arn:aws:s3:::<vpc-flow-bucket-name>/*"
       ]
     },
