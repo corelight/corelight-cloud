@@ -9,6 +9,7 @@ across multiple cloud providers.
     autoscaling sensor within AWS, including `main.tf` and `versions.tf` files for configuration.
 - **`aws-cloud-enrichment/`**: A Terraform module for setting up cloud enrichment
     services on AWS.
+- **`aws-fleet/`**: Contains Terraform files for deploying Corelight's Fleet application on AWS.
 - **`aws-flow-sensor/`**: (Private Preview) Contains an example deployment of the `terraform-aws-single-sensor` module
     with supporting IAM resources
 - **`azure-cloud-enrichment/`**: Module to configure cloud enrichment capabilities
