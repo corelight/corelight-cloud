@@ -1,23 +1,22 @@
 locals {
   # Common Configuration
-  aws_region        = "<aws_region>" 
-  vpc_id            = "<vpc_id>"
-  aws_key_pair_name = "<aws_key_pair_name>"
+  aws_key_pair_name = "<aws key pair name>"
 
   # Fleet Configuration
-  public_subnets    = ["<subnet-1>", "<subnet-2>"]
-  private_subnet    = "<subnet-3>"
-  route53_zone_name = "<route53_zone_name>"
-  subdomain         = "<subdomain>"
-  certificate_arn   = "<certificate_arn>"
+  fleet_vpc_id      = "<vpc where fleet is deployed>"
+  public_subnets    = ["<public subnet 1>", "<public subnet 2>"]
+  private_subnet    = "<private subnet>"
+  route53_zone_name = "<route53 zone name>"
+  subdomain         = "<subdomain for fleet>"
+  certificate_arn   = "<certificate arn for fleet>"
 
   # Fleet Authentication
   community_string               = "corelight-community"
   fleet_username                 = "admin"
   fleet_password                 = "asdf1234"
   fleet_api_password             = "asdf1234"
-  fleet_certificate_file_path    = "/path/to/certificate.pem"
-  fleet_sensor_license_file_path = "/path/to/license.txt"
+  fleet_certificate_file_path    = "path/to/certificate.pem"
+  fleet_sensor_license_file_path = "path/to/license.txt"
 
   # Fleet Optional Configuration (with defaults)
   alb_security_group_id              = null
@@ -41,51 +40,33 @@ locals {
   fleet_instance_security_group_name = "corelight-fleet-instance-security-group"
 
   # Sensor Configuration
+  sensor_vpc_id           = "<vpc where sensor is deployed>"
   sensor_instance_name    = "terraform-corelight-sensor"
   corelight_sensor_ami_id = "ami-09c608170bbd4b27e" # Example default AMI ID
-  management_subnet_id    = "<management_subnet_id>"
-  monitoring_subnet_id    = "<monitoring_subnet_id>"
-
-  # Security Configuration
-  ssh_allow_cidrs    = ["0.0.0.0/0"]
-  mirror_allow_cidrs = ["0.0.0.0/0"]
+  management_subnet_id    = "<management subnet ID>"
+  monitoring_subnet_id    = "<monitoring subnet ID>"
 
   # Instance Configuration
   associate_public_ip_address = false
 
   # Sensor Optional Configuration (with defaults)
   custom_sensor_user_data                      = ""
-  sensor_instance_name_default                 = "corelight-sensor"
-  management_network_interface_name            = "corelight-sensor-nic"
-  monitoring_network_interface_name            = "corelight-sensor-nic"
+  management_interface_name                    = "corelight-sensor-nic-management"
+  monitoring_interface_name                    = "corelight-sensor-nic-monitoring"
   instance_type                                = "c5.2xlarge"
   ebs_volume_size                              = 500
-  sensor_management_security_group_name        = "corelight-management-sg"
+  sensor_management_security_group_name        = "corelight-management-security-group"
   sensor_management_security_group_description = "Security group for the sensor which allows ssh"
-  sensor_monitoring_security_group_name        = "corelight-management-sg"
+  sensor_monitoring_security_group_name        = "corelight-management-security-group"
   sensor_monitoring_security_group_description = "Security group for the sensor which allows ssh"
-  iam_instance_profile_name                    = "corelight-sensor-iam-instance-profile"
-
-  cloud_enrichment_config = {
-    bucket_name   = ""
-    bucket_region = ""
-  }
-
-  tags = {}
 
   # Computed Values
-  fleet_ssl_name = "${local.subdomain}.${local.route53_zone_name}"
-  fleet_url      = "https://${local.subdomain}.${local.route53_zone_name}/fleet/v1"
-  fleet_api_url  = "https://${local.subdomain}.${local.route53_zone_name}:1443/fleet/v1/internal/softsensor/websocket"
+  fleet_server_ssl_name = "${local.subdomain}.${local.route53_zone_name}"
+  fleet_base_url        = "https://${local.fleet_server_ssl_name}"
+  fleet_url             = "${local.fleet_base_url}/fleet/v1"
+  fleet_api_url         = "${local.fleet_base_url}:1443/fleet/v1/internal/softsensor/websocket"
+  fleet_token           = data.external.fleet_token.result.token
 
-  fleet_config = {
-    token           = data.external.fleet_token.result.token
-    url             = local.fleet_api_url
-    server_ssl_name = local.fleet_ssl_name
-    http_proxy      = ""
-    https_proxy     = ""
-    no_proxy        = ""
-  }
 }
 
 
@@ -93,7 +74,7 @@ module "corelight_fleet" {
   source = "github.com/corelight/terraform-aws-fleet"
 
   # Networking
-  vpc_id            = local.vpc_id
+  vpc_id            = local.fleet_vpc_id
   public_subnets    = local.public_subnets
   private_subnet    = local.private_subnet
   route53_zone_name = local.route53_zone_name
@@ -108,7 +89,6 @@ module "corelight_fleet" {
   admin_cidr_blocks             = local.admin_cidr_blocks
 
   # EC2 Deployment
-  aws_region        = local.aws_region
   aws_key_pair_name = local.aws_key_pair_name
   aws_ami_owner     = local.aws_ami_owner
   aws_ami_name      = local.aws_ami_name
@@ -142,7 +122,12 @@ resource "null_resource" "fleet_delay" {
   depends_on = [module.corelight_fleet]
 
   provisioner "local-exec" {
-    command = "sleep 60" # Wait for Fleet to be ready
+    command = <<EOT
+until curl -k -s -o /dev/null -w "%%{http_code}" "${local.fleet_base_url}" | grep -q "200"; do
+  echo "Waiting for Fleet to be ready at ${local.fleet_base_url}..."
+  sleep 5
+done
+EOT
   }
 }
 
@@ -152,27 +137,23 @@ module "corelight_single_sensor" {
   depends_on = [null_resource.fleet_delay]
 
   # Core configuration
-  region                  = local.aws_region
-  corelight_sensor_ami_id = local.corelight_sensor_ami_id
-  management_subnet_id    = local.management_subnet_id
-  monitoring_subnet_id    = local.monitoring_subnet_id
-  vpc_id                  = local.vpc_id
-  aws_key_pair_name       = local.aws_key_pair_name
-
-  # Security
-  ssh_allow_cidrs    = local.ssh_allow_cidrs
-  mirror_allow_cidrs = local.mirror_allow_cidrs
+  ami_id                         = local.corelight_sensor_ami_id
+  management_interface_subnet_id = local.management_subnet_id
+  monitoring_interface_subnet_id = local.monitoring_subnet_id
+  aws_key_pair_name              = local.aws_key_pair_name
 
   # Instance configuration
-  associate_public_ip_address = local.associate_public_ip_address
-  custom_sensor_user_data     = local.custom_sensor_user_data
-  instance_name               = local.sensor_instance_name
-  instance_type               = local.instance_type
-  ebs_volume_size             = local.ebs_volume_size
+  management_security_group_vpc_id = local.sensor_vpc_id
+  monitoring_security_group_vpc_id = local.sensor_vpc_id
+  management_interface_public_ip   = local.associate_public_ip_address
+  custom_sensor_user_data          = local.custom_sensor_user_data
+  instance_name                    = local.sensor_instance_name
+  instance_type                    = local.instance_type
+  ebs_volume_size                  = local.ebs_volume_size
 
   # Network interfaces
-  management_network_interface_name = local.management_network_interface_name
-  monitoring_network_interface_name = local.monitoring_network_interface_name
+  management_interface_name = local.management_interface_name
+  monitoring_interface_name = local.monitoring_interface_name
 
   # Security groups
   management_security_group_name        = local.sensor_management_security_group_name
@@ -180,13 +161,9 @@ module "corelight_single_sensor" {
   monitoring_security_group_name        = local.sensor_monitoring_security_group_name
   monitoring_security_group_description = local.sensor_monitoring_security_group_description
 
-  # IAM and tags
-  iam_instance_profile_name = local.iam_instance_profile_name
-  tags                      = local.tags
-
   # Licensing and Fleet
-  license_key_file_path   = local.fleet_sensor_license_file_path
-  fleet_community_string  = local.community_string
-  fleet_config            = local.fleet_config
-  cloud_enrichment_config = local.cloud_enrichment_config
+  license_key_file_path  = local.fleet_sensor_license_file_path
+  fleet_community_string = local.community_string
+  fleet_token            = local.fleet_token
+  fleet_url              = local.fleet_api_url
 }
