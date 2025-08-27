@@ -41,8 +41,8 @@ data "aws_iam_policy_document" "flow_policy_data" {
     ]
     resources = [
       // provide the flow sensor access to read from the flow log bucket
-      "arn:aws:s3:::<vpc flow bucket name>/*",
-      "arn:aws:s3:::<vpc flow bucket name>",
+      "arn:aws:s3:::<vpc-flow-bucket-name>/*",
+      "arn:aws:s3:::<vpc-flow-bucket-name>",
     ]
   }
   statement {
@@ -52,6 +52,16 @@ data "aws_iam_policy_document" "flow_policy_data" {
       "ec2:DescribeFlowLogs"
     ]
     resources = ["*"]
+  }
+  // Add if flows originate from other accounts to grant the ability to assume into other roles
+  statement {
+    effect = "Allow"
+    actions = [
+      "sts:AssumeRole"
+    ]
+    resources = [
+      "arn:aws:iam::*:role/<cross-region-role-name>"
+    ]
   }
 }
 
@@ -67,14 +77,12 @@ data "aws_iam_policy_document" "ec2_assume_policy" {
 }
 
 resource "aws_iam_policy" "flow_policy" {
-  // Name the IAM policy
-  name   = ""
+  name   = "corelight-vpc-flow-sensor-policy"
   policy = data.aws_iam_policy_document.flow_policy_data.json
 }
 
 resource "aws_iam_role" "flow_role" {
-  // Name the flow sensor IAM role
-  name               = ""
+  name               = "corelight-vpc-flow-sensor-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_policy.json
 }
 
