@@ -23,7 +23,7 @@ locals {
   instance_security_group_id         = null
   alb_https_ingress_cidr_blocks      = ["0.0.0.0/0"]
   alb_api_ingress_cidr_blocks        = ["0.0.0.0/0"]
-  admin_cidr_blocks                  = []
+  admin_cidr_blocks                  = ["0.0.0.0/0"]
   aws_ami_owner                      = "099720109477"
   aws_ami_name                       = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
   aws_ami_user                       = "ubuntu"
@@ -56,9 +56,9 @@ locals {
   instance_type                                = "c5.2xlarge"
   ebs_volume_size                              = 500
   sensor_management_security_group_name        = "corelight-management-security-group"
-  sensor_management_security_group_description = "Security group for the sensor which allows ssh"
-  sensor_monitoring_security_group_name        = "corelight-management-security-group"
-  sensor_monitoring_security_group_description = "Security group for the sensor which allows ssh"
+  sensor_management_security_group_description = "management security group for the sensor which allows ssh"
+  sensor_monitoring_security_group_name        = "corelight-monitoring-security-group"
+  sensor_monitoring_security_group_description = "monitoring security group for the sensor which allows ssh"
 
   # Computed Values
   fleet_server_ssl_name = "${local.subdomain}.${local.route53_zone_name}"
