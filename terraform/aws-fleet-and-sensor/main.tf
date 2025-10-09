@@ -14,7 +14,6 @@ locals {
   community_string               = "corelight-community"
   fleet_username                 = "admin"
   fleet_password                 = "asdf1234"
-  fleet_api_password             = "asdf1234"
   fleet_certificate_file_path    = "path/to/certificate.pem"
   fleet_sensor_license_file_path = "path/to/license.txt"
 
@@ -29,7 +28,7 @@ locals {
   aws_ami_user                       = "ubuntu"
   aws_ec2_size                       = "t3.large"
   aws_volume_size                    = 50
-  fleet_version                      = "28.2.2"
+  fleet_version                      = "28.3.3"
   radius_enable                      = false
   radius_address                     = ""
   radius_shared_secret               = ""
@@ -101,7 +100,6 @@ module "corelight_fleet" {
   community_string               = local.community_string
   fleet_username                 = local.fleet_username
   fleet_password                 = local.fleet_password
-  fleet_api_password             = local.fleet_api_password
   fleet_certificate_file_path    = local.fleet_certificate_file_path
   fleet_sensor_license_file_path = local.fleet_sensor_license_file_path
 
@@ -160,10 +158,11 @@ module "corelight_single_sensor" {
   management_security_group_description = local.sensor_management_security_group_description
   monitoring_security_group_name        = local.sensor_monitoring_security_group_name
   monitoring_security_group_description = local.sensor_monitoring_security_group_description
+  ssh_allow_cidrs                       = local.admin_cidr_blocks 
 
   # Licensing and Fleet
-  license_key_file_path  = local.fleet_sensor_license_file_path
   fleet_community_string = local.community_string
   fleet_token            = local.fleet_token
   fleet_url              = local.fleet_api_url
+  fleet_server_sslname   = local.fleet_server_ssl_name
 }
