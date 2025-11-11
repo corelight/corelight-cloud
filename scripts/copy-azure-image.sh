@@ -70,6 +70,57 @@ extract_blob_name_from_sas() {
     echo "$blob_name"
 }
 
+# Function to extract version from URL
+extract_version_from_url() {
+    local url="$1"
+    
+    # Remove query parameters
+    local url_without_params="${url%%\?*}"
+    
+    # Extract version pattern (vX.Y.Z or vX.Y.Z-something)
+    # Matches patterns like v28.4.0 or v28.4.0-rc20
+    if [[ "$url_without_params" =~ v([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+        local major="${BASH_REMATCH[1]}"
+        local minor="${BASH_REMATCH[2]}"
+        local patch="${BASH_REMATCH[3]}"
+        echo "${major}.${minor}.${patch}"
+    else
+        echo ""
+    fi
+}
+
+# Function to compare versions
+# Returns 0 if version1 < version2, 1 otherwise
+version_less_than() {
+    local version1="$1"
+    local version2="$2"
+    
+    # Split versions into components
+    IFS='.' read -ra v1_parts <<< "$version1"
+    IFS='.' read -ra v2_parts <<< "$version2"
+    
+    # Compare major version
+    if [[ ${v1_parts[0]} -lt ${v2_parts[0]} ]]; then
+        return 0
+    elif [[ ${v1_parts[0]} -gt ${v2_parts[0]} ]]; then
+        return 1
+    fi
+    
+    # Compare minor version
+    if [[ ${v1_parts[1]} -lt ${v2_parts[1]} ]]; then
+        return 0
+    elif [[ ${v1_parts[1]} -gt ${v2_parts[1]} ]]; then
+        return 1
+    fi
+    
+    # Compare patch version
+    if [[ ${v1_parts[2]} -lt ${v2_parts[2]} ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Check if any arguments were provided
 if [[ $# -eq 0 ]]; then
     usage
@@ -251,18 +302,20 @@ create_managed_image() {
     local storage_account="$4"
     local container_name="$5"
     local blob_name="$6"
+    local hyperv_generation="$7"
 
     # Construct the VHD blob URI
     local vhd_uri="https://${storage_account}.blob.core.windows.net/${container_name}/${blob_name}"
 
     echo "Creating managed image '$image_name' from VHD blob..."
     echo "VHD URI: $vhd_uri"
+    echo "Hyper-V Generation: $hyperv_generation"
 
     az image create \
         --name "$image_name" \
         --resource-group "$resource_group" \
         --location "$location" \
-        --hyper-v-generation V2 \
+        --hyper-v-generation "$hyperv_generation" \
         --source "$vhd_uri" \
         --os-type Linux
 
@@ -356,6 +409,26 @@ fi
 echo ""
 echo "Processing managed image creation..."
 
+# Extract version from source SAS URL
+VERSION=$(extract_version_from_url "$SOURCE_SAS")
+if [[ -n "$VERSION" ]]; then
+    echo "Detected version: $VERSION"
+    
+    # Determine Hyper-V generation based on version
+    # Version < 28.4.0 uses V1, otherwise V2
+    if version_less_than "$VERSION" "28.4.0"; then
+        HYPERV_GENERATION="V1"
+        echo "Version $VERSION is less than 28.4.0, using Hyper-V Generation V1"
+    else
+        HYPERV_GENERATION="V2"
+        echo "Version $VERSION is 28.4.0 or greater, using Hyper-V Generation V2"
+    fi
+else
+    # Default to V2 if version cannot be detected
+    HYPERV_GENERATION="V2"
+    echo "Warning: Could not extract version from URL, defaulting to Hyper-V Generation V2"
+fi
+
 # Generate image name from blob name (without .vhd extension)
 IMAGE_NAME=$(generate_image_name "$BLOB_NAME")
 echo "Using image name: $IMAGE_NAME"
@@ -366,11 +439,12 @@ if check_image_exists "$IMAGE_NAME" "$DESTINATION_RESOURCE_GROUP"; then
 else
     # Create the managed image
     echo "Creating managed image from VHD blob..."
-    if create_managed_image "$IMAGE_NAME" "$DESTINATION_RESOURCE_GROUP" "$DESTINATION_LOCATION" "$DESTINATION_ACCOUNT_NAME" "$DESTINATION_CONTAINER_NAME" "$BLOB_NAME"; then
+    if create_managed_image "$IMAGE_NAME" "$DESTINATION_RESOURCE_GROUP" "$DESTINATION_LOCATION" "$DESTINATION_ACCOUNT_NAME" "$DESTINATION_CONTAINER_NAME" "$BLOB_NAME" "$HYPERV_GENERATION"; then
         echo "Managed image creation completed successfully!"
         echo "  Image Name: $IMAGE_NAME"
         echo "  Resource Group: $DESTINATION_RESOURCE_GROUP"
         echo "  Location: $DESTINATION_LOCATION"
+        echo "  Hyper-V Generation: $HYPERV_GENERATION"
     else
         echo "Failed to create managed image. Please check Azure CLI output for details."
         exit 1
