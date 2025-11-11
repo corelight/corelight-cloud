@@ -262,6 +262,7 @@ create_managed_image() {
         --name "$image_name" \
         --resource-group "$resource_group" \
         --location "$location" \
+        --hyper-v-generation V2 \
         --source "$vhd_uri" \
         --os-type Linux
 
