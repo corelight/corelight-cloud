@@ -1,3 +1,19 @@
+# ⚠️ DEPRECATED — This repository has moved
+
+> **This repository is no longer maintained and has been archived (read-only).**
+
+The Terraform examples in this repository now live in the
+**[Corelight Terraform monorepo](https://github.com/corelight/terraform)** under
+[`examples/`](https://github.com/corelight/terraform/tree/main/examples).
+
+See the [monorepo README](https://github.com/corelight/terraform#readme) for the full module and example list.
+
+> **Note:** The CloudFormation templates (`cloudformation/`) and partner
+> integrations (`terraform/integrations/`) were not migrated to the monorepo and
+> are no longer maintained.
+
+---
+
 # Corelight Deployment Guide
 
 This repository provides sample configurations for deploying Corelight products
